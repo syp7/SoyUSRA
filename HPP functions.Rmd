@@ -1,0 +1,70 @@
+---
+title: "HPP functions"
+author: "So Yeon Park"
+date: "2023-05-31"
+output: pdf_document
+---
+
+```{r}
+# simulate by increasing the number of events, then compute MLE = n/T
+set.seed(123)
+
+# function to generate event times for HPP
+generate_event_times <- function(rate, num_events) {
+  inter_event <- rexp(n = num_events, rate = rate)
+  event_times <- cumsum(inter_event)
+  return(event_times)
+}
+
+# increase the number of events
+num_events <- 10
+num_events <- 100
+num_events <- 1000
+num_events <- 10000
+
+# set range of rates
+rate_range <- seq(from = 0.1, to = 2, by = 0.1)
+
+# generate event times for each rate in the range
+event_times_list <- list()
+for (rate in rate_range) {
+  event_times <- generate_event_times(rate = rate, num_events = num_events)
+  event_times_list[[as.character(rate)]] <- event_times
+}
+
+print(event_times_list)
+
+# Save the last number from each element of the event_times_list
+last_numbers <- sapply(event_times_list, function(x) tail(x, n = 1))
+
+print(num_events / last_numbers)
+
+# as the number increase, MLE gets closer to the rate
+```
+
+```{r}
+# write function: specify # of events and lambda -> print vector of event times from HPP
+
+print_event_times <- function(num_events, rate) {
+  inter_event <- rexp(num_events, rate = rate)
+  event_times <- cumsum(inter_event)
+  return(event_times)
+}
+
+print_event_times(100,1.2)
+```
+
+```{r}
+# write function: vector of event times (single argument) and print lambda_hat
+
+print_lambda_hat <- function(event_times) {
+  num_events <- length(event_times)
+  lambda_hat <- num_events / event_times[length(event_times)]
+  return(lambda_hat)
+}
+
+event_times <- c(0.6, 1.4, 1.6, 3.4, 5.5)
+print_lambda_hat(event_times)
+
+# 5/5.5 = 0.9090909
+```
