@@ -1,7 +1,7 @@
 ---
-title: "HPP functions"
+title: "HPP functions_update1"
 author: "So Yeon Park"
-date: "2023-05-31"
+date: "2023-06-01"
 output: pdf_document
 ---
 
@@ -63,6 +63,23 @@ print_lambda_hat <- function(event_times) {
   return(lambda_hat)
 }
 
+# revised
+print_lambda_hat <- function(event_times) {
+  if (length(event_times) == 0) {
+    stop("Error: event_times should be non-empty numeric vector.")
+  }
+  if (any(event_times < 0)) {
+    stop("Error: event_times should be a vector of positive values.")
+  }
+  
+  num_events <- length(event_times)
+  lambda_hat <- num_events / event_times[length(event_times)]
+  return(lambda_hat)
+}
+
+
+event_times <- c()
+event_times <- c(-1,-3)
 event_times <- c(0.6, 1.4, 1.6, 3.4, 5.5)
 print_lambda_hat(event_times)
 
