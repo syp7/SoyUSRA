@@ -1,10 +1,10 @@
 ---
-title: "HPP functions_update1"
+title: "HPP functions"
 author: "So Yeon Park"
-date: "2023-06-01"
+date: "2023-06-04"
 output: pdf_document
 ---
-
+# May 29
 ```{r}
 # simulate by increasing the number of events, then compute MLE = n/T
 set.seed(123)
@@ -45,26 +45,29 @@ print(num_events / last_numbers)
 ```{r}
 # write function: specify # of events and lambda -> print vector of event times from HPP
 
-print_event_times <- function(num_events, rate) {
+hpp_event_times <- function(num_events, rate) {
   inter_event <- rexp(num_events, rate = rate)
   event_times <- cumsum(inter_event)
   return(event_times)
 }
 
-print_event_times(100,1.2)
+hpp_event_times(100,1.2)
 ```
 
 ```{r}
 # write function: vector of event times (single argument) and print lambda_hat
 
-print_lambda_hat <- function(event_times) {
+hpp_lambda_hat <- function(event_times) {
   num_events <- length(event_times)
   lambda_hat <- num_events / event_times[length(event_times)]
   return(lambda_hat)
 }
+```
 
+# June 1
+```{r}
 # revised
-print_lambda_hat <- function(event_times) {
+hpp_lambda_hat <- function(event_times) {
   if (length(event_times) == 0) {
     stop("Error: event_times should be non-empty numeric vector.")
   }
@@ -81,7 +84,92 @@ print_lambda_hat <- function(event_times) {
 event_times <- c()
 event_times <- c(-1,-3)
 event_times <- c(0.6, 1.4, 1.6, 3.4, 5.5)
-print_lambda_hat(event_times)
+hpp_lambda_hat(event_times)
 
 # 5/5.5 = 0.9090909
+```
+
+# June 4
+```{r}
+# calculate vector of tau's for HPP
+hpp_tau <- function(event_times, lambda_est) {
+  n <- length(event_times)
+  vector_tau <- numeric(n)
+  
+  # Interval from 0 to first event time
+  vector_tau[1] <- lambda_est * event_times[1]  
+  
+  for (i in 2:n) {
+    interval <- event_times[i] - event_times[i-1]
+    tau <- lambda_est * interval
+    vector_tau[i] <- tau
+  }
+  
+  return(vector_tau)
+}
+
+event_times <- c(0.6,1.2,1.7,3,3.6)
+hpp_tau(event_times, 1.2)
+
+# lambda_est is not a constant for other PP
+# lambda_est is a function for in-HPP; 
+# then I replace the constant lambda_est value with a function for lambda_hat/lambda_est, then use the integrate function to get the vector of tau's 
+# example
+hpp_tau <- function(event_times, lambda_hat) {
+  n <- length(event_times)
+  vector_tau <- numeric(n)
+  vector_tau[1] <- integrate(lambda_hat, lower = 0,
+                             upper = event_times[1])$value
+  
+  for (i in 2:n) {
+    tau <- integrate(lambda_hat, lower = event_times[i-1], 
+                     upper = event_times[i])$value
+    vector_tau[i] <- tau
+  }
+  
+  return(vector_tau)
+}
+
+
+lambda_hat <- function(t){
+  lambda_est <- # conditional intensity function
+  return(lambda_est)
+}
+
+# hpp_tau(event_times, lambda_hat(t))
+```
+
+```{r}
+# write a function to get the log-likelihood for HPP
+hpp_log_likelihood <- function(lambda, event_times) {
+  n <- length(event_times)
+  total_time <- event_times[length(event_times)]
+  log_likelihood <- n * log(lambda) - lambda * total_time
+  return(-log_likelihood)
+}
+
+# event_times
+set.seed(123)
+inter_event_times <- rexp(100, rate = 0.2)
+event_times <- as.vector(cumsum(inter_event_times))
+
+# try hpp_log_likelihood
+hpp_log_likelihood(2, event_times)
+
+# use optim() to maximize log-likelihood; set the initial value to 1
+log_value <- optim(par = 1, fn = hpp_log_likelihood, event_times = event_times)
+
+# Warning: one-dimensional optimization by Nelder-Mead is unreliable:
+# use "Brent" or optimize() directlyWarning: NaNs producedWarning: NaNs producedWarning: NaNs produced
+
+# find the optimal parameter(lambda) value and the maximum log-likelihood
+log_value$par
+-log_value$value
+
+# try using optimize()
+opt_log_value <- optimize(f = hpp_log_likelihood, interval = c(0, 10), event_times = event_times)
+
+# find the parameter and max. log-likelihood
+opt_log_value$minimum
+-opt_log_value$objective
 ```
