@@ -67,7 +67,7 @@ hp_sim_omta <- function(lambda, alpha, beta, T) {
     u <- runif(1)
     
     # calculate current intensity at the next event time
-    intensity_next <- lambda + alpha * sum(exp(-beta * (event_time_next - event_times)))
+    intensity_next <- lambda + alpha * sum(exp(-beta * (event_time_next - event_times))) + alpha
     
     # find the envelope/blanket function using Ogata's modified thinning algorithm
     envelope_f <- intensity_next / intensity_max
@@ -117,7 +117,7 @@ hp_sim_omta <- function(lambda, alpha, beta, T) {
     u <- runif(1)
     
     # calculate current intensity at the next event time
-    intensity_next <- lambda + alpha * sum(exp(-beta * (event_time_next - event_times)))
+    intensity_next <- lambda + alpha * sum(exp(-beta * (event_time_next - event_times))) + alpha
     
     # find the envelope/blanket function using Ogata's modified thinning algorithm
     envelope_f <- intensity_next / intensity_max
