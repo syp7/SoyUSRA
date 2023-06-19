@@ -1,0 +1,94 @@
+---
+title: "HP functions"
+author: "So Yeon Park"
+date: "2023-06-19"
+output: pdf_document
+---
+
+1. Write a function using 4 inputs (lambda, alpha, beta, T) that returns event times; T is the end-time.
+```{r}
+hp_sim <- function(lambda, alpha, beta, T) {
+  # empty vector for event times
+  event_times <- numeric(0)
+  
+  # Set initial time = 0
+  t <- 0
+  
+  # while loop
+  while (t < T) {
+    # calculate intensity at current time
+    intensity <- lambda + sum(alpha * beta * exp(-beta * (t - event_times)))
+    
+    # generate the following event time using the intensity 
+    event_time_next <- rexp(1, rate = intensity)
+    
+    # update current time
+    t <- t + event_time_next
+    
+    # record new event time to the vector
+    event_times <- c(event_times, t)
+  }
+  
+  # return the simulated event times
+  return(event_times)
+}
+
+# simulate using the following parameters
+lambda <- 0.8
+alpha <- 0.3
+beta <- 1.4
+T <- 10
+
+# Simulate the Hawkes process
+hp_events <- hp_sim(lambda, alpha, beta, T)
+
+# Print the simulated event times
+print(hp_events)
+
+```
+
+2. Modify the function by using "Ogata's modified thinning algorithm"
+```{r}
+hp_sim_omta <- function(lambda, alpha, beta, T) {
+  # create an empty vector for event times
+  event_times <- numeric(0)
+  
+  # set the initial time = 0
+  t <- 0
+  
+  while (t < T) {
+    # calculate the max intensity (calculated at the initial time t)
+    intensity_max <- lambda + alpha * sum(exp(-beta * (t - event_times)))
+    
+    # generate the next event time with maximum intensity
+    event_time_next <- rexp(1, rate = intensity_max)
+    
+    # generate a random number from uniform dist.
+    u <- runif(1)
+    
+    # calculate current intensity at the next event time
+    intensity_next <- lambda + alpha * sum(exp(-beta * (event_time_next - event_times)))
+    
+    # find the envelope/blanket function using Ogata's modified thinning algorithm
+    envelope_f <- intensity_next / intensity_max
+    
+    # accept or reject?
+    if (u <= envelope_f) {
+      # accept the event
+      t <- t + event_time_next
+      
+      # record new event time to the vector
+      event_times <- c(event_times, t)
+    }
+  }
+  
+  # return simulated event times
+  return(event_times)
+}
+
+# Simulate the Hawkes process
+hp_omta_events <- hp_sim_omta(lambda, alpha, beta, T)
+
+# Print the simulated event times
+print(hp_omta_events)
+```
