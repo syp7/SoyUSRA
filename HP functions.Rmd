@@ -92,3 +92,51 @@ hp_omta_events <- hp_sim_omta(lambda, alpha, beta, T)
 # Print the simulated event times
 print(hp_omta_events)
 ```
+
+3. Update with alpha < beta
+```{r}
+hp_sim_omta <- function(lambda, alpha, beta, T) {
+  # for stationarity, I need alpha < beta
+    if (alpha >= beta) {
+    stop("Stationary hawkes process requires alpha<beta.")
+} 
+  # create an empty vector for event times
+  event_times <- numeric(0)
+  
+  # set the initial time = 0
+  t <- 0
+
+  while (t < T) {
+    # calculate the max intensity (calculated at the initial time t)
+    intensity_max <- lambda + alpha * sum(exp(-beta * (t - event_times)))
+    
+    # generate the next event time with maximum intensity
+    event_time_next <- rexp(1, rate = intensity_max)
+    
+    # generate a random number from uniform dist.
+    u <- runif(1)
+    
+    # calculate current intensity at the next event time
+    intensity_next <- lambda + alpha * sum(exp(-beta * (event_time_next - event_times)))
+    
+    # find the envelope/blanket function using Ogata's modified thinning algorithm
+    envelope_f <- intensity_next / intensity_max
+    
+    # accept or reject?
+    if (u <= envelope_f) {
+      # accept the event
+      t <- t + event_time_next
+      
+      # record new event time to the vector
+      event_times <- c(event_times, t)
+    }
+  }
+  
+  # return simulated event times
+  return(event_times)
+}
+
+# try with alpha >= beta
+hp_sim_omta(lambda,alpha=0.8,beta=0.7,T)
+hp_sim_omta(lambda,alpha=0.8,beta=0.8,T)
+```
